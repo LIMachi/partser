@@ -12,9 +12,10 @@ pub mod prelude {
     pub use crate::{ParserError, ParserOut, Parser, ExpectedChar, StringReader, Number, Any, Repeatable, Branch, Parseable, Permutation};
     pub use crate::number;
     pub use crate::mappers::{map, default, optional, take_fold, Mappable, Optional};
-    pub use crate::multi::{branch, rep, delimited, seq, separated_pair, any, preceded, terminated, perm};
-    pub use crate::utils::{white, skip, CaseInsensitive};
+    pub use crate::multi::{branch, rep, delimited, seq, separated_pair, any, preceded, terminated, perm, fold, take_while};
+    pub use crate::utils::{white, skip, CaseInsensitive, MapErrToString};
     pub use std::ops::ControlFlow;
+    pub use macros::swizzle_parsers as swizzle;
 }
 
 use std::error::Error;

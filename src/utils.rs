@@ -180,3 +180,13 @@ impl CaseInsensitive<char> for char {
         }
     }
 }
+
+pub trait MapErrToString<O> {
+    fn map_err_to_string(self) -> Result<O, String>;
+}
+
+impl <O> MapErrToString<O> for Result<O, ParserError> {
+    fn map_err_to_string(self) -> Result<O, String> {
+        self.map_err(|e| format!("{e:?}"))
+    }
+}

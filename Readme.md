@@ -1,0 +1,1 @@
+Custom combinatorial parser (Part + Parser => PartSer) inspired by Nom

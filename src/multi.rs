@@ -1,5 +1,5 @@
 use std::collections::{Bound, HashMap};
-use std::ops::RangeBounds;
+use std::ops::{ControlFlow, RangeBounds};
 use macros::{impl_tuples, swizzle_parsers};
 use super::{StringReader, Parser, ParserOut, ParserError, Any, Repeatable, Branch, Permutation};
 
@@ -225,10 +225,43 @@ pub fn separated_pair<F1: Parser<O1>, O1, _D, F2: Parser<O2>, O2>(first: F1, sep
     swizzle_parsers!((first, separator, second); 0, 2)
 }
 
+///folds repeatedly the input using control flows to tell when to stop folding (with an error or a valid resul)
+pub fn fold<O: Clone>(start: O, consumer: impl Fn(O, StringReader)->ControlFlow<ParserOut<O>, (StringReader, O)>)->impl Fn(StringReader) -> ParserOut<O> {
+    move |mut input| {
+        let mut acc = start.clone();
+        loop {
+            match consumer(acc, input) {
+                ControlFlow::Continue((i, o)) => {
+                    input = i;
+                    acc = o;
+                }
+                ControlFlow::Break(o) => { return  o; }
+            }
+        }
+    }
+}
+
+pub fn take_while(predicate: impl Fn(char) -> bool) -> impl Fn(StringReader) -> ParserOut<String> {
+    fold(String::new(), move |mut acc, input| {
+        let c = input[0];
+
+        if c == '\0' || !predicate(c) { return ControlFlow::Break(Ok((input, acc))); }
+
+        acc.push(c);
+        match input.move_head(1) {
+            Ok(next) => ControlFlow::Continue((next, acc)),
+            Err(err) => ControlFlow::Break(Err(err)),
+        }
+    })
+}
+
 #[cfg(test)]
 mod test {
-    #[test]
-    fn array() {
+    use crate::multi::take_while;
+    use crate::Parseable;
 
+    #[test]
+    fn take_while_ident() {
+        assert_eq!("Id: Jhon".parse_with(false, take_while(|c| c.is_alphabetic())).unwrap(), "Id".to_string());
     }
 }
