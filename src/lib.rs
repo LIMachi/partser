@@ -9,7 +9,7 @@ mod decimal;
 mod assert;
 
 pub mod prelude {
-    pub use crate::{ParserError, ParserOut, Parser, ExpectedChar, StringReader, Number, Any, Repeatable, Branch, Parseable, Permutation};
+    pub use crate::{ParserError, ParserOut, Parser, ExpectedChar, StringReader, Number, Any, Repeatable, Branch, Parseable, Permutation, ReusableParser};
     pub use crate::number;
     pub use crate::mappers::{map, default, optional, take_fold, Mappable, Optional};
     pub use crate::multi::{branch, rep, delimited, seq, separated_pair, any, preceded, terminated, perm, fold, take_while};
@@ -87,6 +87,12 @@ pub trait Parseable<O>: Into<StringReader> {
 pub trait Parser<O> {
     ///return the output if all matched (if this is a set aka tuple, vec, etc...) or if it matched (fn, other impls)
     fn parser(self) -> impl Fn(StringReader) -> ParserOut<O>;
+}
+
+///anything that can produce multiple identical parsers
+///(auto implemented on parsers that are clone)
+pub trait ReusableParser<O> {
+    fn parser(&self) -> impl Fn(StringReader) -> ParserOut<O>;
 }
 
 ///anything that can be parsed in order, return the first valid match

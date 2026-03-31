@@ -1,10 +1,16 @@
 use std::collections::{Bound, HashMap};
 use std::ops::{ControlFlow, RangeBounds};
 use macros::{impl_tuples, swizzle_parsers};
-use super::{StringReader, Parser, ParserOut, ParserError, Any, Repeatable, Branch, Permutation};
+use super::{StringReader, Parser, ParserOut, ParserError, Any, Repeatable, Branch, Permutation, ReusableParser};
 
 impl <F: Fn(StringReader) -> ParserOut<O>, O> Parser<O> for F {
     fn parser(self) -> impl Fn(StringReader) -> ParserOut<O> { self }
+}
+
+impl <O, P: Parser<O> + Clone> ReusableParser<O> for P {
+    fn parser(&self) -> impl Fn(StringReader) -> ParserOut<O> {
+        self.clone().parser()
+    }
 }
 
 impl Parser<()> for () {
