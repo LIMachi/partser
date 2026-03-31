@@ -69,7 +69,7 @@ macro_rules! signed_try_from {
                 type Error = ParserError;
 
                 fn try_from(value: Number) -> Result<Self, Self::Error> {
-                    Ok(saturating_signed_cast(value.negative, value.integer().ok_or(ParserError::InvalidNumberCast { from: value, to: "$num" })?, Self::MIN, Self::MAX))
+                    Ok(saturating_signed_cast(value.negative, value.integer().ok_or(ParserError::InvalidNumberCast { from: value, to: stringify!($num) })?, Self::MIN, Self::MAX))
                 }
             }
         )*
@@ -97,9 +97,9 @@ macro_rules! unsigned_try_from {
 
                 fn try_from(value: Number) -> Result<Self, Self::Error> {
                     if value.negative {
-                        Err(ParserError::InvalidNumberCast { from: value, to: "$num" })?;
+                        Err(ParserError::InvalidNumberCast { from: value, to: stringify!($num) })?;
                     }
-                    Ok(saturating_unsigned_cast(value.integer().ok_or(ParserError::InvalidNumberCast { from: value, to: "$num" })?, Self::MAX))
+                    Ok(saturating_unsigned_cast(value.integer().ok_or(ParserError::InvalidNumberCast { from: value, to: stringify!($num) })?, Self::MAX))
                 }
             }
         )*
@@ -265,7 +265,7 @@ impl Number {
 
 #[cfg(test)]
 mod test {
-    use crate::{Any, Parseable};
+    use crate::{assert_panics, Any, Parseable};
     use crate::prelude::Mappable;
     use super::*;
 
@@ -284,5 +284,20 @@ mod test {
         assert_eq!("123.4".parse_with(true, (i32.map_ok(|v| v as f32 + 5000.), f32).any()).unwrap(), 123.4);
         assert_eq!("123".parse_with(true, (i32.map_ok(|v| v as f32 + 5000.), f32).any()).unwrap(), 5123.);
         assert_eq!("123m".parse_with(true, (i32.map_ok(|v| v as f32 + 5000.), f32).any()).unwrap(), 0.123);
+    }
+
+    #[test]
+    fn error() {
+        assert_panics!("-10.2e-1".parse_with(true, uf32).unwrap());
+        assert_panics!("10.2e-1".parse_with(true, usize).unwrap());
+        assert!(matches!("10.2e-1".parse_with(true, usize).unwrap_err(), ParserError::InvalidNumberCast {
+            from: Number {
+                negative: false,
+                integer: 10,
+                frac: 2,
+                exponent: -1,
+            },
+            to: "usize",
+        }));
     }
 }
