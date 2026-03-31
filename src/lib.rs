@@ -16,6 +16,10 @@ pub mod prelude {
     pub use crate::utils::{white, skip, CaseInsensitive, MapErrToString};
     pub use std::ops::ControlFlow;
     pub use macros::swizzle_parsers as swizzle;
+
+    pub mod partser_macros {
+        pub use macros::*;
+    }
 }
 
 use std::error::Error;

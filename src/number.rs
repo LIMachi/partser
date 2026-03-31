@@ -69,7 +69,7 @@ macro_rules! signed_try_from {
                 type Error = ParserError;
 
                 fn try_from(value: Number) -> Result<Self, Self::Error> {
-                    Ok(saturating_signed_cast(value.negative, value.integer().ok_or(ParserError::InvalidNumberCast { from: value, to: "$ty" })?, Self::MIN, Self::MAX))
+                    Ok(saturating_signed_cast(value.negative, value.integer().ok_or(ParserError::InvalidNumberCast { from: value, to: "$num" })?, Self::MIN, Self::MAX))
                 }
             }
         )*
@@ -97,9 +97,9 @@ macro_rules! unsigned_try_from {
 
                 fn try_from(value: Number) -> Result<Self, Self::Error> {
                     if value.negative {
-                        Err(ParserError::InvalidNumberCast { from: value, to: "$ty" })?;
+                        Err(ParserError::InvalidNumberCast { from: value, to: "$num" })?;
                     }
-                    Ok(saturating_unsigned_cast(value.integer().ok_or(ParserError::InvalidNumberCast { from: value, to: "$ty" })?, Self::MAX))
+                    Ok(saturating_unsigned_cast(value.integer().ok_or(ParserError::InvalidNumberCast { from: value, to: "$num" })?, Self::MAX))
                 }
             }
         )*
